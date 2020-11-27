@@ -32,4 +32,10 @@ public class GlobalExceptionHandler {
 		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(), ex.getErrorCode(), ex.getMessage());
 		return new ResponseEntity<>(errorDetails, BAD_REQUEST);
 	}
+	
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<Object> exception(Exception ex, WebRequest request) {
+		ErrorDetails errorDetails = new ErrorDetails(LocalDateTime.now(), 0, ex.getMessage());
+		return new ResponseEntity<>(errorDetails, BAD_REQUEST);
+	}
 }

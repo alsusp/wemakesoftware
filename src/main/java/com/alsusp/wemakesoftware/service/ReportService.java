@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.alsusp.wemakesoftware.dao.ReportDao;
 import com.alsusp.wemakesoftware.exception.NotFoundException;
+import com.alsusp.wemakesoftware.model.MobileStation;
 import com.alsusp.wemakesoftware.model.Report;
 
 @Service
@@ -40,5 +41,9 @@ public class ReportService {
 	public void delete(UUID id) {
 		logger.info("Delete report by ID {}", id);
 		reportDao.delete(findOne(id));
+	}
+
+	public Report getLastReportForMobileStation(MobileStation mobileStation) {
+		return reportDao.findTopByMobileStationOrderByTimestampDesc(mobileStation).orElse(new Report());
 	}
 }

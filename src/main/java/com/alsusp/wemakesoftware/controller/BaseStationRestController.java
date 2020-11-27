@@ -23,7 +23,10 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.alsusp.wemakesoftware.exception.NotUniqueNameException;
 import com.alsusp.wemakesoftware.exception.NotValidQuantityException;
 import com.alsusp.wemakesoftware.model.BaseStation;
+import com.alsusp.wemakesoftware.model.MobileStation;
+import com.alsusp.wemakesoftware.model.Report;
 import com.alsusp.wemakesoftware.service.BaseStationService;
+import com.alsusp.wemakesoftware.service.MobileStationService;
 import com.alsusp.wemakesoftware.service.ReportService;
 
 @RestController
@@ -32,10 +35,14 @@ public class BaseStationRestController {
 
 	BaseStationService baseStationService;
 
+	MobileStationService mobileStationService;
+
 	ReportService reportService;
 
-	public BaseStationRestController(BaseStationService baseStationService, ReportService reportService) {
+	public BaseStationRestController(BaseStationService baseStationService, MobileStationService mobileStationService,
+			ReportService reportService) {
 		this.baseStationService = baseStationService;
+		this.mobileStationService = mobileStationService;
 		this.reportService = reportService;
 	}
 
@@ -59,14 +66,32 @@ public class BaseStationRestController {
 	}
 
 	@PutMapping("/{uuid}")
-	public void update(@PathVariable("uuid") UUID id, @Valid @RequestBody BaseStation baseStation) throws NotUniqueNameException, NotValidQuantityException {
+	public void update(@PathVariable("uuid") UUID id, @Valid @RequestBody BaseStation baseStation)
+			throws NotUniqueNameException {
 		if (baseStationService.findOne(id) != null) {
-			baseStationService.save(baseStation);
+			baseStationService.update(baseStation);
 		}
 	}
 
 	@DeleteMapping("/{uuid}")
 	public void delete(@PathVariable("uuid") UUID id) {
 		baseStationService.delete(id);
+	}
+
+	@PostMapping(value = "/reports")
+	@ResponseStatus(CREATED)
+	public void report(@Valid @RequestBody BaseStationReportDTO baseStationReportDTO) {
+		BaseStation baseStation = baseStationService.findOne(baseStationReportDTO.getBaseStationId());
+		baseStationReportDTO.getReports().forEach(report -> {
+			MobileStation mobileStation = mobileStationService.findOne(report.getMobileStationId());
+			updateMobileStationPosition(baseStation, mobileStation);
+			reportService.save(new Report(baseStation, mobileStation, report.getDistance(), report.getTimestamp()));
+		});
+	}
+
+	private void updateMobileStationPosition(BaseStation baseStation, MobileStation mobileStation) {
+		mobileStation.setLastKnownX(baseStation.getX());
+		mobileStation.setLastKnownY(baseStation.getY());
+		mobileStationService.update(mobileStation);
 	}
 }

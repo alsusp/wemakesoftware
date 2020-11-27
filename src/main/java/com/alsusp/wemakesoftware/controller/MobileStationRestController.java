@@ -22,6 +22,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.alsusp.wemakesoftware.exception.NotValidQuantityException;
 import com.alsusp.wemakesoftware.model.MobileStation;
+import com.alsusp.wemakesoftware.model.Report;
 import com.alsusp.wemakesoftware.service.MobileStationService;
 import com.alsusp.wemakesoftware.service.ReportService;
 
@@ -50,16 +51,17 @@ public class MobileStationRestController {
 
 	@PostMapping
 	@ResponseStatus(CREATED)
-	public ResponseEntity<Object> create(@Valid @RequestBody MobileStation mobileStation, UriComponentsBuilder builder) throws NotValidQuantityException {
+	public ResponseEntity<Object> create(@Valid @RequestBody MobileStation mobileStation, UriComponentsBuilder builder)
+			throws NotValidQuantityException {
 		mobileStationService.save(mobileStation);
 		URI uri = builder.path("api/mobileStations/{uuid}").build(mobileStation.getId());
 		return ResponseEntity.created(uri).build();
 	}
 
 	@PutMapping("/{uuid}")
-	public void update(@PathVariable("uuid") UUID id, @Valid @RequestBody MobileStation mobileStation) throws NotValidQuantityException {
+	public void update(@PathVariable("uuid") UUID id, @Valid @RequestBody MobileStation mobileStation) {
 		if (mobileStationService.findOne(id) != null) {
-			mobileStationService.save(mobileStation);
+			mobileStationService.update(mobileStation);
 		}
 	}
 
@@ -67,17 +69,12 @@ public class MobileStationRestController {
 	public void delete(@PathVariable("uuid") UUID id) {
 		mobileStationService.delete(id);
 	}
-	
+
 	@GetMapping("/location/{uuid}")
-	public MobileStationLocation getMobileStationLocation(@PathVariable("uuid") UUID id) {
-		MobileStation mobileStation =  mobileStationService.findOne(id);
-		MobileStationLocation mobileStationLocation = new MobileStationLocation();
-		mobileStationLocation.setMobileId(mobileStation.getId());
-		mobileStationLocation.setX(mobileStation.getLastKnownX());
-		mobileStationLocation.setY(mobileStation.getLastKnownY());
-		mobileStationLocation.setErrorRadius(1f);
-		mobileStationLocation.setErrorCode(4);
-		mobileStationLocation.setErrorDescription("Hard situation");
-		return mobileStationLocation;
+	public MobileStationLocationDTO getMobileStationLocation(@PathVariable("uuid") UUID id) {
+		MobileStation mobileStation = mobileStationService.findOne(id);
+		Report report = reportService.getLastReportForMobileStation(mobileStation);
+		return new MobileStationLocationDTO(mobileStation.getId(), mobileStation.getLastKnownX(),
+				mobileStation.getLastKnownY(), report.getDistance());
 	}
 }

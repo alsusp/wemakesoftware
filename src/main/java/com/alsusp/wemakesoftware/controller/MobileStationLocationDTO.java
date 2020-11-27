@@ -2,25 +2,25 @@ package com.alsusp.wemakesoftware.controller;
 
 import java.util.UUID;
 
-public class MobileStationLocation {
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+public class MobileStationLocationDTO {
 
 	private UUID mobileId;
 	private float x;
 	private float y;
-	private float errorRadius;
-	private int errorCode;
-	private String errorDescription;
 	
-	public MobileStationLocation() {
+	@JsonProperty("error_radius")
+	private float errorRadius;
+	
+	public MobileStationLocationDTO() {
 	}
 	
-	public MobileStationLocation(UUID mobileId, float x, float y, float errorRadius, int errorCode, String errorDescription) {
+	public MobileStationLocationDTO(UUID mobileId, float x, float y, float errorRadius) {
 		this.mobileId = mobileId;
 		this.x = x;
 		this.y = y;
 		this.errorRadius = errorRadius;
-		this.errorCode = errorCode;
-		this.errorDescription = errorDescription;
 	}
 
 	public UUID getMobileId() {
@@ -53,21 +53,5 @@ public class MobileStationLocation {
 
 	public void setErrorRadius(float errorRadius) {
 		this.errorRadius = errorRadius;
-	}
-
-	public int getErrorCode() {
-		return errorCode;
-	}
-
-	public void setErrorCode(int errorCode) {
-		this.errorCode = errorCode;
-	}
-
-	public String getErrorDescription() {
-		return errorDescription;
-	}
-
-	public void setErrorDescription(String errorDescription) {
-		this.errorDescription = errorDescription;
 	}
 }

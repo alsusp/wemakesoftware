@@ -37,9 +37,14 @@ public class BaseStationService {
 
 	public void save(BaseStation baseStation) throws NotUniqueNameException, NotValidQuantityException {
 		logger.info("Save base station");
-		if (baseStation.getId() == null) {
-			validateMaxQuantity();
-		}
+		validateMaxQuantity();
+		validateNameUnique(baseStation);
+		baseStation.setName(StringUtil.capitalize(baseStation.getName()));
+		baseStationDao.save(baseStation);
+	}
+	
+	public void update(BaseStation baseStation) throws NotUniqueNameException {
+		logger.info("Update base station");
 		validateNameUnique(baseStation);
 		baseStation.setName(StringUtil.capitalize(baseStation.getName()));
 		baseStationDao.save(baseStation);
@@ -64,7 +69,7 @@ public class BaseStationService {
 	}
 
 	private void validateMaxQuantity() throws NotValidQuantityException {
-		if (baseStationDao.findAll().size() >= 100) {
+		if (baseStationDao.findAll().size() >= 99) {
 			throw new NotValidQuantityException("Exceeded the maximum number of base stations");
 		}
 	}

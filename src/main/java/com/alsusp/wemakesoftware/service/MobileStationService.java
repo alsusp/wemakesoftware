@@ -1,6 +1,5 @@
 package com.alsusp.wemakesoftware.service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -8,13 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import com.alsusp.wemakesoftware.dao.BaseStationDao;
 import com.alsusp.wemakesoftware.dao.MobileStationDao;
 import com.alsusp.wemakesoftware.exception.NotFoundException;
 import com.alsusp.wemakesoftware.exception.NotValidQuantityException;
-import com.alsusp.wemakesoftware.model.BaseStation;
 import com.alsusp.wemakesoftware.model.MobileStation;
-import com.alsusp.wemakesoftware.model.Report;
 
 @Service
 public class MobileStationService {
@@ -23,15 +19,8 @@ public class MobileStationService {
 
 	private MobileStationDao mobileStationDao;
 
-	private BaseStationDao baseStationDao;
-
-	private ReportService reportService;
-
-	MobileStationService(MobileStationDao mobileStationDao, BaseStationDao baseStationDao,
-			ReportService reportService) {
+	MobileStationService(MobileStationDao mobileStationDao) {
 		this.mobileStationDao = mobileStationDao;
-		this.baseStationDao = baseStationDao;
-		this.reportService = reportService;
 	}
 
 	public List<MobileStation> findAll() {
@@ -46,10 +35,12 @@ public class MobileStationService {
 
 	public void save(MobileStation mobileStation) throws NotValidQuantityException {
 		logger.info("Save mobile station");
-		if (mobileStation.getId() == null) {
-			validateMaxQuantity();
-		}
-		validateDetection(mobileStation);
+		validateMaxQuantity();
+		mobileStationDao.save(mobileStation);
+	}
+	
+	public void update(MobileStation mobileStation) {
+		logger.info("Update mobile station");
 		mobileStationDao.save(mobileStation);
 	}
 
@@ -59,27 +50,8 @@ public class MobileStationService {
 	}
 
 	private void validateMaxQuantity() throws NotValidQuantityException {
-		if (mobileStationDao.findAll().size() >= 100) {
+		if (mobileStationDao.findAll().size() >= 99) {
 			throw new NotValidQuantityException("Exceeded the maximum number of mobile stations");
 		}
-	}
-
-	private void validateDetection(MobileStation mobileStation) {
-		baseStationDao.findAll().forEach(baseStation -> {
-			if (isMobileStationInTheRadiusOfBaseStation(baseStation, mobileStation)) {
-				float distance = findDistanceBetweenBaseStationAndMobileStation(baseStation, mobileStation);
-				reportService.save(new Report(baseStation, mobileStation, distance, LocalDateTime.now()));
-			}
-		});
-	}
-
-	private boolean isMobileStationInTheRadiusOfBaseStation(BaseStation baseStation, MobileStation mobileStation) {
-		return Math.pow(mobileStation.getLastKnownX() - baseStation.getX(), 2) + Math.pow(mobileStation.getLastKnownY() - baseStation.getY(), 2) <= Math
-				.pow(baseStation.getDetectionRadiusInMeters(), 2);
-	}
-
-	private float findDistanceBetweenBaseStationAndMobileStation(BaseStation baseStation, MobileStation mobileStation) {
-		return (float) Math.sqrt(Math.pow(mobileStation.getLastKnownX() - baseStation.getX(), 2)
-				+ Math.pow(mobileStation.getLastKnownY() - baseStation.getY(), 2));
 	}
 }
